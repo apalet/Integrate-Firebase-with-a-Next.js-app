@@ -76,7 +76,26 @@ export async function getRestaurants(db = db, filters = {}) {
 }
 
 export function getRestaurantsSnapshot(cb, filters = {}) {
-  return;
+  if (typeof cb !== "function") {
+    console.log("Error: The callback parameter is not a function");
+    return;
+  }
+
+  let q = query(collection(db, "restaurants"));
+  q = applyQueryFilters(q, filters);
+
+  return onSnapshot(q, (querySnapshot) => {
+    const results = querySnapshot.docs.map((doc) => {
+      return {
+        id: doc.id,
+        ...doc.data(),
+        // Only plain objects can be passed to Client Components from Server Components
+        timestamp: doc.data().timestamp.toDate(),
+      };
+    });
+
+    cb(results);
+  });
 }
 
 export async function getRestaurantById(db, restaurantId) {
@@ -92,8 +111,25 @@ export async function getRestaurantById(db, restaurantId) {
   };
 }
 
+// Changes made through the Firestore Database page now reflect in the web app in real time.
 export function getRestaurantSnapshotById(restaurantId, cb) {
-  return;
+  if (!restaurantId) {
+    console.log("Error: Invalid ID received: ", restaurantId);
+    return;
+  }
+
+  if (typeof cb !== "function") {
+    console.log("Error: The callback parameter is not a function");
+    return;
+  }
+
+  const docRef = doc(db, "restaurants", restaurantId);
+  return onSnapshot(docRef, (docSnap) => {
+    cb({
+      ...docSnap.data(),
+      timestamp: docSnap.data().timestamp.toDate(),
+    });
+  });
 }
 
 export async function getReviewsByRestaurantId(db, restaurantId) {

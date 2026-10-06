@@ -76,6 +76,8 @@ export default function RestaurantListings({
     routerWithFilters(router, filters);
   }, [router, filters]);
 
+  // this snapshot function provides a callback mechanism 
+  // so that the callback is invoked every time a change is made to the restaurant's collection.
   useEffect(() => {
     return getRestaurantsSnapshot((data) => {
       setRestaurants(data);
