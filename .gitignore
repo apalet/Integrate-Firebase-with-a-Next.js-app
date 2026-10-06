@@ -4,3 +4,8 @@ lib/firebase/config.js
 node_modules/
 .env
 .firebaserc
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
