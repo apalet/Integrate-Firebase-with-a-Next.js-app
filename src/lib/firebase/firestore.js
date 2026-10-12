@@ -35,19 +35,60 @@ export async function updateRestaurantImageReference(
   }
 }
 
-// Stub: later this will update avgRating/numRatings in the same transaction as a new review
+// This code inserts a new Firestore document representing the new review. 
+// The code also updates the existing Firestore document that represents the restaurant 
+// with updated figures for the number of ratings and the average calculated rating.
 const updateWithRating = async (
   transaction,
   docRef,
   newRatingDocument,
   review
 ) => {
-  return;
+  const restaurant = await transaction.get(docRef);
+  const data = restaurant.data();
+  const newNumRatings = data?.numRatings ? data.numRatings + 1 : 1;
+  const newSumRating = (data?.sumRating || 0) + Number(review.rating);
+  const newAverage = newSumRating / newNumRatings;
+
+  transaction.update(docRef, {
+    numRatings: newNumRatings,
+    sumRating: newSumRating,
+    avgRating: newAverage,
+  });
+
+  transaction.set(newRatingDocument, {
+    ...review,
+    timestamp: Timestamp.fromDate(new Date()),
+  });
 };
 
-// Stub: later this will add a review under a restaurant and update its rating stats
+// Add a review under a restaurant and update its rating stats
 export async function addReviewToRestaurant(db, restaurantId, review) {
-  return;
+  if (!restaurantId) {
+    throw new Error("No restaurant ID has been provided.");
+  }
+
+  if (!review) {
+    throw new Error("A valid review has not been provided.");
+  }
+
+  try {
+    const docRef = doc(collection(db, "restaurants"), restaurantId);
+    const newRatingDocument = doc(
+      collection(db, `restaurants/${restaurantId}/ratings`),
+    );
+
+    // corrected line
+    await runTransaction(db, (transaction) =>
+      updateWithRating(transaction, docRef, newRatingDocument, review),
+    );
+  } catch (error) {
+    console.error(
+      "There was an error adding the rating to the restaurant",
+      error,
+    );
+    throw error;
+  }
 }
 
 // Add optional city/category/price filters and a sort (rating vs review count)
