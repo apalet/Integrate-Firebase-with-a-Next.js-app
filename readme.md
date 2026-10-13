@@ -34,3 +34,6 @@ Project-ID: friendlyeats-codelab-bbe51
 Cloud Secret Manager: ./node_modules/firebase-tools/lib/bin/firebase.js apphosting:secrets:set GEMINI_API_KEY
 
 ./node_modules/firebase-tools/lib/bin/firebase.js apphosting:secrets:access GEMINI_API_KEY
+
+npx firebase apphosting:secrets:grantaccess GEMINI_API_KEY --backend friendlyeats-codelab
+./node_modules/firebase-tools/lib/bin/firebase.js login --reauth
