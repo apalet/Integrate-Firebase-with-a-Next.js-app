@@ -30,3 +30,5 @@ npm run dev
 firebase local path: ./node_modules/firebase-tools/lib/bin/firebase.js 
 
 Project-ID: friendlyeats-codelab-bbe51
+
+Cloud Secret Manager: ./node_modules/firebase-tools/lib/bin/firebase.js apphosting:secrets:set GEMINI_API_KEY
