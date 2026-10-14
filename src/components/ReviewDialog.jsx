@@ -1,20 +1,23 @@
 "use client";
 
+// Modal for writing a restaurant review. Stars + text are collected in a form
+// that posts via a Next.js Server Action; hidden fields send restaurant and user ids.
+
 // This components handles the review dialog and uses a next.js feature known as Server Actions to handle the form submission
 
 import { useEffect, useLayoutEffect, useRef } from "react";
-import RatingPicker from "@/src/components/RatingPicker.jsx";
-import { handleReviewFormSubmission } from "@/src/app/actions.js";
+import RatingPicker from "@/src/components/RatingPicker.jsx"; // Star rating input included in the form
+import { handleReviewFormSubmission } from "@/src/app/actions.js"; // Server Action that writes the review to Firestore
 
 const ReviewDialog = ({
-  isOpen,
+  isOpen, // Parent toggles whether the native <dialog> is shown
   handleClose,
-  review,
+  review, // Controlled review state from the parent (at least { text })
   onChange,
   userId,
-  id,
+  id, // Restaurant document id
 }) => {
-  const dialog = useRef();
+  const dialog = useRef(); // Points at the <dialog> so we can call showModal()/close()
 
   // dialogs only render their backdrop when called with `showModal`
   useLayoutEffect(() => {
@@ -35,9 +38,9 @@ const ReviewDialog = ({
   return (
     <dialog ref={dialog} onMouseDown={handleClick}>
       <form
-        action={handleReviewFormSubmission}
+        action={handleReviewFormSubmission} // Submit runs on the server, not a client fetch
         onSubmit={() => {
-          handleClose();
+          handleClose(); // Close the modal as soon as the user submits
         }}
       >
         <header>
@@ -58,6 +61,7 @@ const ReviewDialog = ({
             />
           </p>
 
+          {/* Not shown in the UI; the Server Action needs these ids in FormData */}
           <input type="hidden" name="restaurantId" value={id} />
           <input type="hidden" name="userId" value={userId} />
         </article>

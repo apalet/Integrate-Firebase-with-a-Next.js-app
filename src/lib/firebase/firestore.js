@@ -1,6 +1,6 @@
 // Firestore helpers for restaurants and reviews: one-time reads, live snapshots,
-// URL filters/sort, sample data, and (stubbed) adding a review. Converts
-// Firestore Timestamps to Dates so data can be passed to Client Components.
+// URL filters/sort, sample data, and adding a review (transaction updates rating
+// stats). Converts Firestore Timestamps to Dates for Client Components.
 
 // Demo data used by "Add sample restaurants" in the Header
 import { generateFakeRestaurantsAndReviews } from "@/src/lib/fakeRestaurants.js";
@@ -14,8 +14,8 @@ import {
   getDoc, // One-time fetch of a single document
   updateDoc, // Updates fields on an existing document
   orderBy, // Sort query results by a field
-  Timestamp,
-  runTransaction,
+  Timestamp, // Firestore date type used when writing a new review
+  runTransaction, // Runs restaurant stats + new review writes as one atomic unit
   where, // Filter query results by a field
   addDoc, // Creates a new document with an auto-generated id
   getFirestore,
@@ -40,8 +40,8 @@ export async function updateRestaurantImageReference(
 // with updated figures for the number of ratings and the average calculated rating.
 const updateWithRating = async (
   transaction,
-  docRef,
-  newRatingDocument,
+  docRef, // Restaurant document being rated
+  newRatingDocument, // New doc in the restaurant's "ratings" subcollection
   review
 ) => {
   const restaurant = await transaction.get(docRef);
@@ -50,6 +50,7 @@ const updateWithRating = async (
   const newSumRating = (data?.sumRating || 0) + Number(review.rating);
   const newAverage = newSumRating / newNumRatings;
 
+  // Keep restaurant aggregates in sync so listing sort-by-rating stays correct
   transaction.update(docRef, {
     numRatings: newNumRatings,
     sumRating: newSumRating,
@@ -62,7 +63,7 @@ const updateWithRating = async (
   });
 };
 
-// Add a review under a restaurant and update its rating stats
+// Called from the review Server Action: write the review and bump restaurant stats
 export async function addReviewToRestaurant(db, restaurantId, review) {
   if (!restaurantId) {
     throw new Error("No restaurant ID has been provided.");
@@ -74,11 +75,12 @@ export async function addReviewToRestaurant(db, restaurantId, review) {
 
   try {
     const docRef = doc(collection(db, "restaurants"), restaurantId);
+    // Empty doc() here means Firestore will assign an auto-generated review id
     const newRatingDocument = doc(
       collection(db, `restaurants/${restaurantId}/ratings`),
     );
 
-    // corrected line
+    // Both writes succeed or neither does (no half-updated ratings)
     await runTransaction(db, (transaction) =>
       updateWithRating(transaction, docRef, newRatingDocument, review),
     );
