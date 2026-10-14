@@ -1,5 +1,7 @@
-import { googleAI, gemini } from '@genkit-ai/googleai';
+// import { googleAI, gemini } from '@genkit-ai/googleai';
 import { genkit } from "genkit";
+import { googleAI, gemini } from '@genkit-ai/googleai';
+// import { vertexAI } from '@genkit-ai/vertexai';
 import { getReviewsByRestaurantId } from "@/src/lib/firebase/firestore.js";
 import { getAuthenticatedAppForUser } from "@/src/lib/firebase/serverApp";
 import { getFirestore } from "firebase/firestore";
@@ -30,12 +32,19 @@ export async function GeminiSummary({ restaurantId }) {
       );
     }
 
-    // Configure a Genkit instance.
+    // Configure a Genkit instance using option 1.
     const ai = genkit({
       plugins: [googleAI()],
-      model: gemini('gemini-3.8-flash'), // set default model
+      model: gemini('gemini-2.5-flash'), // O el modelo flash estable actual
     });
     const { text } = await ai.generate(prompt);
+  
+    // // Configure a Genkit instance using option 2.
+    // const ai = genkit({
+    //   plugins: [vertexAI({ location: 'us-central1' })],
+    //   model: 'vertexai/gemini-2.5-flash', // set default model
+    // });
+    // const { text } = await ai.generate(prompt);
 
     return (
       <div className="restaurant__review_summary">
