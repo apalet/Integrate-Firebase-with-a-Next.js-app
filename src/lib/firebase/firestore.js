@@ -55,6 +55,8 @@ const updateWithRating = async (
     numRatings: newNumRatings,
     sumRating: newSumRating,
     avgRating: newAverage,
+    // add new field for useid making review to use as security check
+    lastReviewUserId: review.userId,
   });
 
   transaction.set(newRatingDocument, {
