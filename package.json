@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "npm run lint:next && npm:lint:prettier",
+    "lint": "npm run lint:next && npm run lint:prettier",
     "lint:next": "next lint",
     "lint:prettier": "prettier --check --ignore-path .gitignore .",
     "lint:fix": "npm run lint:next -- --fix && npm run lint:prettier -- --write"
