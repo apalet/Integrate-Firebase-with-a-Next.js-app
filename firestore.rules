@@ -18,22 +18,18 @@ service cloud.firestore {
     match /restaurants/{restaurantId} {
       allow read;
       allow update: if request.resource.data.lastReviewUserId != null;
-    //  allow create: if request.auth != null;
-    //  allow update: if request.auth != null
-    //                && unchanged("name");
       
-        // Ratings:
-        //   - Authenticated user can read
-        //   - Authenticated user can create if userId matches
-        //   - Deletes and updates are not allowed (default)
-        match /ratings/{ratingId} {
-          allow read;
-          // next line works for writting new reviews, since userId in sent data
-          allow write: if request.resource.data.userId != null;
-          // allow write: if true;
-          // allow create: if request.auth != null;
-          // allow update: if request.auth != null
-          //              && request.resource.data.userId == request.auth.uid;
+      // Ratings:
+      //   - Authenticated user can read
+      //   - Authenticated user can create if userId matches
+      //   - Deletes and updates are not allowed (default)
+      match /ratings/{ratingId} {
+        // Reviews remain public so that anyone can read them
+        allow read;
+        
+        // Allow creation only if the user is authenticated and writes using their own verified user ID
+        allow create: if request.auth != null 
+                      && request.resource.data.userId == request.auth.uid;
       }
     }
   }
